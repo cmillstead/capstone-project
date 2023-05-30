@@ -13,7 +13,6 @@ describe('Token', () => {
 		exchange;
 
 	beforeEach(async () => {
-		// Fetch token from blockchain
 		const Token = await ethers.getContractFactory('Token');
 		token = await Token.deploy('Dapp University', 'DAPP', '1000000');
 
@@ -127,6 +126,42 @@ describe('Token', () => {
 		describe('Failure', () => {
 			it('Rejects invalid spenders', async () => {
 				await expect(token.connect(deployer).approve(ethers.constants.AddressZero, amount)).to.be.revertedWith('Invalid spender');
+			});
+		});
+	});
+
+	describe('Delegated Token Transfers', () => {
+		let amount,
+			transaction,
+			result;
+
+		beforeEach(async () => {
+			amount = tokens(100);
+			transaction = await token.connect(deployer).approve(exchange.address, amount);
+			result = await transaction.wait();
+		});
+
+		describe('Success', () => {
+			beforeEach(async () => {
+				transaction = await token.connect(exchange).transferFrom(deployer.address, receiver.address, amount);
+				result = await transaction.wait();
+			});
+
+			it('Transfers token balances', async () => {
+				expect(await token.balanceOf(deployer.address)).to.equal(tokens(999900));
+				expect(await token.balanceOf(receiver.address)).to.equal(amount);
+			});
+
+			it('Resets the allowance', async () => {
+				expect(await token.allowance(deployer.address, exchange.address)).to.equal(0);
+			});
+		});
+
+		describe('Failure', async () => {
+			const invalidAmount = tokens(100000000);
+			
+			it('Rejects insufficient amounts', async () => {
+				await expect(token.connect(exchange).transferFrom(deployer.address, receiver.address, invalidAmount)).to.be.reverted;
 			});
 		});
 	});
