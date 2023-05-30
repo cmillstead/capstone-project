@@ -18,6 +18,12 @@ contract Token {
         uint256 value
     ); 
 
+    event Approval(
+        address indexed owner, 
+        address indexed spender, 
+        uint256 value
+    );
+
     constructor(
         string memory _name, 
         string memory _symbol, 
@@ -65,7 +71,11 @@ contract Token {
         external 
         returns (bool success) 
     {
+        require(_spender != address(0), "Invalid spender");
+        
         allowance[msg.sender][_spender] = _value;
+        
+        emit Approval(msg.sender, _spender, _value);
         return true;
     }
 
