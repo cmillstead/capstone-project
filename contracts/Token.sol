@@ -11,6 +11,12 @@ contract Token {
 
     mapping(address => uint256) public balanceOf;
 
+    event Transfer(
+        address indexed from, 
+        address indexed to, 
+        uint256 value
+    ); 
+
     constructor(
         string memory _name, 
         string memory _symbol, 
@@ -22,10 +28,23 @@ contract Token {
         balanceOf[msg.sender] = totalSupply;
     }
 
-    
+    function transfer(address _to, uint256 _value) 
+        external 
+        returns (bool success) 
+    {
+        require(balanceOf[msg.sender] >= _value, "Not enough tokens");
+        require(_to != address(0), "Invalid recipient");   
+
+        balanceOf[msg.sender] -= _value;
+        balanceOf[_to] += _value;
+
+        emit Transfer(msg.sender, _to, _value);
+        return true;
+    }
 
 
     
 }
 
 
+ 
