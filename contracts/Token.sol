@@ -10,6 +10,7 @@ contract Token {
     uint256 public totalSupply = 1000000 * (10**decimals); // 1,000,000 x 10^18
 
     mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) public allowance;
 
     event Transfer(
         address indexed from, 
@@ -42,6 +43,31 @@ contract Token {
         return true;
     }
 
+    function transferFrom(
+        address _from, 
+        address _to, 
+        uint256 _value
+    ) 
+        external 
+        returns (bool success) 
+    {
+        require(balanceOf[_from] >= _value, "Not enough tokens");
+        require(_to != address(0), "Invalid recipient");   
+
+        balanceOf[_from] -= _value;
+        balanceOf[_to] += _value;
+
+        emit Transfer(_from, _to, _value);
+        return true;
+    }
+
+    function approve(address _spender, uint256 _value) 
+        external 
+        returns (bool success) 
+    {
+        allowance[msg.sender][_spender] = _value;
+        return true;
+    }
 
     
 }
