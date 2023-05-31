@@ -97,6 +97,23 @@ contract Exchange {
         emit Deposit(_token, msg.sender, _amount, tokens[_token][msg.sender]);
     }
 
+    function withdrawToken(address _token, uint256 _amount) external {
+        // ensure user has enough tokens to withdraw
+        require(tokens[_token][msg.sender] >= _amount, "Insufficient balance");
+
+        // transfer tokens to user
+        require(
+            Token(_token).transfer(msg.sender, _amount),
+            "Transfer failed"
+        );
+
+        // update user balance
+        tokens[_token][msg.sender] -= _amount;
+
+        // emit event
+        emit Withdraw(_token, msg.sender, _amount, tokens[_token][msg.sender]);
+    }
+
     function balanceOf(address _token, address _user)
         public
         view

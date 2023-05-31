@@ -29,25 +29,24 @@ describe('Token', () => {
 		const decimals = 18;
 		const totalSupply = tokens('1000000');
 
-		it('has correct name', async () => {
+		it('Has correct name', async () => {
 			expect(await token.name()).to.equal(name);
 		});
 
-		it('has correct symbol', async () => {
+		it('Has correct symbol', async () => {
 			expect(await token.symbol()).to.equal(symbol);
 		});
 
-		it('has correct decimals', async () => {
+		it('Has correct decimals', async () => {
 			expect(await token.decimals()).to.equal(decimals);
 		});
 
-		it('has correct totalSupply', async () => {
+		it('Has correct totalSupply', async () => {
 			expect(await token.totalSupply()).to.equal(totalSupply);
 		});
 
-		it('assigns the total supply to deployer', async () => {
+		it('Assigns the total supply to deployer', async () => {
 			expect(await token.balanceOf(deployer.address)).to.equal(totalSupply);
-
 		});
 	});
 

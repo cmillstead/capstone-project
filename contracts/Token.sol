@@ -59,8 +59,10 @@ contract Token {
         require(_value <= allowance[_from][msg.sender], "Not enough allowance");
         require(_value <= balanceOf[_from], "Not enough tokens");
 
+        // update allowance
         allowance[_from][msg.sender] -= _value;
 
+        // transfer tokens
         _transfer(_from, _to, _value);
         
         return true;
