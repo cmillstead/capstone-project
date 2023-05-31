@@ -9,16 +9,25 @@ describe('Exchange', () => {
 	let deployer,
         accounts,
         exchange,
-        feeAccount;
+        feeAccount,
+        token1,
+        token2,
+        user1,
+        user2;
     
     const feePercent = 10;
 
 	beforeEach(async () => {
-		accounts = await ethers.getSigners();
+        const Exchange = await ethers.getContractFactory('Exchange');
+        const Token = await ethers.getContractFactory('Token');
+        
+        token1 = await Token.deploy('Dapp University', 'DAPP', '1000000');
+        
+        accounts = await ethers.getSigners();
 		deployer = accounts[0];
 		feeAccount = accounts[1];
+        user1 = accounts[2];
 
-        const Exchange = await ethers.getContractFactory('Exchange');
 		exchange = await Exchange.deploy(feeAccount.address, feePercent);
 	});  
 
@@ -31,5 +40,34 @@ describe('Exchange', () => {
 			expect(await exchange.feePercent()).to.equal(feePercent);
 		});
 	});
+
+    describe('Depositing tokens', () => {
+        let result,
+            transaction,
+            amount;
+
+        beforeEach(async () => {
+            amount = tokens(10);
+            await exchange.depositToken(ethers.constants.AddressZero, amount);
+
+
+            transaction = await exchange.connect(user1).depositToken(token1.address, amount);
+
+        });
+
+        describe('Success', () => {
+            it('tracks the token deposit', async () => {
+                expect(await token1.balanceOf(exchange.address)).to.equal(amount);
+            });
+        });
+        
+        describe('Failure', () => {
+
+        });
+
+        it('tracks the token deposit', async () => {
+            expect(await exchange.tokens(ethers.constants.AddressZero, deployer.address)).to.equal(amount);
+        });
+    });
 
 });

@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "hardhat/console.sol";
+import "./Token.sol";
 
 contract Exchange {
     address public feeAccount; // the account that receives exchange fees
@@ -80,6 +81,22 @@ contract Exchange {
     receive() external payable {
         revert();
     }
+
+    function depositTokens(address _token, uint256 _amount) external {
+        // Which token?
+        // How much?
+        // Send tokens to this contract
+        // Manage deposit - update balance
+        // Emit event
+        require(_token != ETHER, "Cannot deposit Ether");
+        require(
+            Token(_token).transferFrom(msg.sender, address(this), _amount),
+            "Insufficient balance"
+        );
+        tokens[_token][msg.sender] += _amount;
+        emit Deposit(_token, msg.sender, _amount, tokens[_token][msg.sender]);
+    }
+
 
     function depositEther() external payable {
         tokens[ETHER][msg.sender] += msg.value;
