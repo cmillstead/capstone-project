@@ -8,6 +8,7 @@ contract Exchange {
     address public feeAccount; // the account that receives exchange fees
     uint256 public feePercent; // the fee percentage
     address constant ETHER = address(0); // store Ether in tokens mapping with blank address
+    
     mapping(address => mapping(address => uint256)) public tokens;
     mapping(uint256 => _Order) public orders;
     uint256 public orderCount;
@@ -16,44 +17,44 @@ contract Exchange {
 
     // Events
     event Deposit(
-        address indexed _token,
-        address indexed _user,
-        uint256 _amount,
-        uint256 _balance
+        address indexed token,
+        address indexed user,
+        uint256 amount,
+        uint256 balance
     );
     event Withdraw(
-        address indexed _token,
-        address indexed _user,
-        uint256 _amount,
-        uint256 _balance
+        address indexed token,
+        address indexed user,
+        uint256 amount,
+        uint256 balance
     );
     event Order(
-        uint256 indexed _id,
-        address indexed _user,
-        address indexed _tokenGet,
-        uint256 _amountGet,
-        address _tokenGive,
-        uint256 _amountGive,
-        uint256 _timestamp
+        uint256 indexed id,
+        address indexed user,
+        address indexed tokenGet,
+        uint256 amountGet,
+        address tokenGive,
+        uint256 amountGive,
+        uint256 timestamp
     );
     event Cancel(
-        uint256 indexed _id,
-        address indexed _user,
-        address indexed _tokenGet,
-        uint256 _amountGet,
-        address _tokenGive,
-        uint256 _amountGive,
-        uint256 _timestamp
+        uint256 indexed id,
+        address indexed user,
+        address indexed tokenGet,
+        uint256 amountGet,
+        address tokenGive,
+        uint256 amountGive,
+        uint256 timestamp
     );
     event Trade(
-        uint256 indexed _id,
-        address indexed _user,
-        address indexed _tokenGet,
-        uint256 _amountGet,
-        address _tokenGive,
-        uint256 _amountGive,
-        address _userFill,
-        uint256 _timestamp
+        uint256 indexed id,
+        address indexed user,
+        address indexed tokenGet,
+        uint256 amountGet,
+        address tokenGive,
+        uint256 amountGive,
+        address userFill,
+        uint256 timestamp
     );
 
     // Structs
@@ -82,24 +83,25 @@ contract Exchange {
         revert();
     }
 
-    function depositTokens(address _token, uint256 _amount) external {
-        // Which token?
-        // How much?
-        // Send tokens to this contract
-        // Manage deposit - update balance
-        // Emit event
-        require(_token != ETHER, "Cannot deposit Ether");
+    function depositToken(address _token, uint256 _amount) external {
+        // transfer tokens to exchange
         require(
             Token(_token).transferFrom(msg.sender, address(this), _amount),
             "Insufficient balance"
         );
+
+        // update user balance
         tokens[_token][msg.sender] += _amount;
+
+        // emit event
         emit Deposit(_token, msg.sender, _amount, tokens[_token][msg.sender]);
     }
 
-
-    function depositEther() external payable {
-        tokens[ETHER][msg.sender] += msg.value;
-        emit Deposit(ETHER, msg.sender, msg.value, tokens[ETHER][msg.sender ]);
-    }       
-}    
+    function balanceOf(address _token, address _user)
+        public
+        view
+        returns (uint256)
+    {
+        return tokens[_token][_user];
+    }   
+}     
