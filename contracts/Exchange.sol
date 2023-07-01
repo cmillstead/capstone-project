@@ -15,7 +15,7 @@ contract Exchange {
     mapping(uint256 => bool) public orderCancelled;
     mapping(uint256 => bool) public orderFilled;
 
-    // Events
+    // Events 
     event Deposit(
         address indexed token,
         address indexed user,
@@ -83,6 +83,9 @@ contract Exchange {
         revert();
     }
 
+    // -----------------------------------------
+    // DEPOSIT & WITHDRAW TOKEN     
+
     function depositToken(address _token, uint256 _amount) external {
         // transfer tokens to exchange
         require(
@@ -120,5 +123,67 @@ contract Exchange {
         returns (uint256)
     {
         return tokens[_token][_user];
-    }   
+    }
+
+    // -----------------------------------------
+    // MAKE & CANCEL ORDERS
+
+    function makeOrder(
+        address _tokenGet, // the token the user wants to receive
+        uint256 _amountGet, // the amount the user wants to receive
+        address _tokenGive, // the token the user wants to spend
+        uint256 _amountGive // the amount the user wants to spend
+    ) public {
+        // prevent orders if tokens arent on exchange
+        require(balanceOf(_tokenGive, msg.sender) >= _amountGive, "Insufficient balance");
+
+        orderCount++;
+        
+        // instantiate new order
+        orders[orderCount] = _Order(
+            orderCount,
+            msg.sender,
+            _tokenGet,
+            _amountGet,
+            _tokenGive,
+            _amountGive,
+            block.timestamp
+        );
+
+        // emit event
+        emit Order(
+            orderCount,
+            msg.sender,
+            _tokenGet,
+            _amountGet,
+            _tokenGive,
+            _amountGive,
+            block.timestamp
+        );
+    }
+
+    function cancelOrder(uint256 _id) public {
+        // fetch order from storage
+        _Order storage _order = orders[_id];
+
+        // ensure the caller of the function is the person who made the order
+        require(address(_order.user) == msg.sender, "Not your order");
+
+        // order must exist
+        require(_order.id == _id, "Invalid order");
+
+        // update cancelled orders mapping
+        orderCancelled[_id] = true;
+
+        // emit event
+        emit Cancel(
+            _order.id,
+            msg.sender,
+            _order.tokenGet,
+            _order.amountGet,
+            _order.tokenGive,
+            _order.amountGive,
+            block.timestamp
+        );
+    }
 }     
