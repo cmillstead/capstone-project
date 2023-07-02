@@ -1,9 +1,7 @@
 const { ethers } = require('hardhat'); 
 const { expect } = require('chai'); 
 
-const tokens = (n) => {
-	return ethers.utils.parseUnits(n.toString(), 'ether');
-};
+const { tokens } = require('../src/utils');
 
 describe('Exchange', () => {
 	let deployer,
@@ -333,7 +331,6 @@ describe('Exchange', () => {
                 await expect(exchange.connect(user2).fillOrder(1)).to.be.reverted;
               });
             });
-      
           });
       });
 }); 

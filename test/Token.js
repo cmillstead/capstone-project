@@ -1,9 +1,7 @@
 const { ethers } = require('hardhat'); 
 const { expect } = require('chai'); 
 
-const tokens = (n) => {
-	return ethers.utils.parseUnits(n.toString(), 'ether');
-};
+const { tokens } = require('../src/utils');
 
 describe('Token', () => {
 	let token,
