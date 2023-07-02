@@ -17,7 +17,7 @@ contract Exchange {
 
     // Events 
     event Deposit(
-        address indexed token,
+        address indexed token, 
         address indexed user,
         uint256 amount,
         uint256 balance
@@ -128,11 +128,18 @@ contract Exchange {
     // -----------------------------------------
     // MAKE & CANCEL ORDERS
 
+    // **
+    // @function makeOrder
+    // @param {address} _tokenGet - the token the user wants to receive
+    // @param {uint256} _amountGet - the amount the user wants to receive
+    // @param {address} _tokenGive - the token the user wants to spend
+    // @param {uint256} _amountGive - the amount the user wants to spend
+    // ** 
     function makeOrder(
-        address _tokenGet, // the token the user wants to receive
-        uint256 _amountGet, // the amount the user wants to receive
-        address _tokenGive, // the token the user wants to spend
-        uint256 _amountGive // the amount the user wants to spend
+        address _tokenGet, 
+        uint256 _amountGet,
+        address _tokenGive,
+        uint256 _amountGive 
     ) public {
         // prevent orders if tokens arent on exchange
         require(balanceOf(_tokenGive, msg.sender) >= _amountGive, "Insufficient balance");
@@ -162,6 +169,10 @@ contract Exchange {
         );
     }
 
+    // **
+    // @function cancelOrder
+    // @param {uint256} _id - the id of the order to cancel 
+    // ** 
     function cancelOrder(uint256 _id) public {
         // fetch order from storage
         _Order storage _order = orders[_id];
@@ -186,4 +197,76 @@ contract Exchange {
             block.timestamp
         );
     }
-}     
+
+    // **
+    // @function fillOrder
+    // @param {uint256} _id - the id of the order to fill 
+    // ** 
+    function fillOrder(uint256 _id) public {
+        // ensure order exists
+        require(_id > 0 && _id <= orderCount, "Order does not exist");
+        // ensure order has not been filled 
+        require(!orderFilled[_id], "Order already filled");
+        // ensure order has not been cancelled
+        require(!orderCancelled[_id], "Order already cancelled");
+
+        // fetch order from storage
+        _Order storage _order = orders[_id];
+
+        // execute trade 
+        _trade(
+            _order.id, 
+            _order.user, 
+            _order.tokenGet, 
+            _order.amountGet, 
+            _order.tokenGive, 
+            _order.amountGive
+        );
+
+        // mark order as filled
+        orderFilled[_order.id] = true;
+    }
+
+    // **
+    // @function _trade
+    // @param {uint256} _orderId - the id of the order to fill
+    // @param {address} _user - the address of the user who made the order
+    // @param {address} _tokenGet - the token the user wants to receive
+    // @param {uint256} _amountGet - the amount the user wants to receive
+    // @param {address} _tokenGive - the token the user wants to spend
+    // @param {uint256} _amountGive - the amount the user wants to spend
+    // ** 
+    function _trade(
+        uint256 _orderId,
+        address _user,
+        address _tokenGet,
+        uint256 _amountGet,
+        address _tokenGive,
+        uint256 _amountGive
+    ) internal {
+        uint256 _feeAmount = (_amountGet * feePercent) / 100;
+
+        // execute trade
+        require(tokens[_tokenGet][msg.sender] >= (_amountGet + _feeAmount), "Not enough tokens to execute trade");
+        tokens[_tokenGet][msg.sender] -= (_amountGet + _feeAmount);
+        tokens[_tokenGet][_user] += _amountGet;
+
+        // charge fees
+        require(tokens[_tokenGive][_user] >= _amountGive, "Not enough tokens for fee");
+        tokens[_tokenGet][feeAccount] += _feeAmount;
+        tokens[_tokenGive][_user] -= _amountGive;
+        tokens[_tokenGive][msg.sender] += _amountGive;
+
+        // emit event
+        emit Trade(
+            _orderId,
+            _user,
+            _tokenGet,
+            _amountGet,
+            _tokenGive,
+            _amountGive,
+            msg.sender,
+            block.timestamp
+        );    
+    }
+}   
