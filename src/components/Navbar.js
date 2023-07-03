@@ -59,8 +59,7 @@ const Navbar = () => {
           <a
             href={config[chainId] ? `${config[chainId].explorerURL}/address/${account}` : `#`}
             target='_blank'
-            rel='noreferrer'
-          >
+            rel='noreferrer'>
             {account.slice(0,5) + '...' + account.slice(38,42)}
             <Blockies
               seed={account}
@@ -73,7 +72,7 @@ const Navbar = () => {
             />
           </a>
         ) : (
-          <button className="button" onClick={connectHandler}>Connect</button>
+          <button className="button" onClick={connectHandler}>Connect Wallet</button>
         )}
       </div>
     </div>
