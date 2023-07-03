@@ -5,26 +5,35 @@ import {
   loadProvider, 
   loadNetwork, 
   loadAccount,
-  loadToken
+  loadTokens,
+  loadExchange
 } from '../store/interactions';
 
 function App() {
   const dispatch = useDispatch();
 
-  const loadBlockchainData = async () => {
-    const account = loadAccount(dispatch)
-    console.log(account)
+  const loadBlockchainData = async () => { 
+    // connect Ethers to blockchain
+    const provider = await loadProvider(dispatch);
+    
+    // fetch current network's chainId
+    const chainId = await loadNetwork(provider, dispatch);
+    
+    // fetch current account and balance from metamask
+    loadAccount(provider, dispatch);
 
-    // Connect Ethers to blockchain
-    const provider = await loadProvider(dispatch)
-    const chainId = await loadNetwork(provider, dispatch)
+    // load token smart contracts
+    const DApp = config[chainId].DApp;
+    const mETH = config[chainId].mETH;
+    await loadTokens(provider, [DApp.address, mETH.address], dispatch) ;
 
-    // Token Smart Contract
-    const token = await loadToken(provider, config[chainId].DApp.address, dispatch) 
+    // exchange smart contract
+    const exchangeConfig = config[chainId].exchange;
+    await loadExchange(provider, exchangeConfig.address, dispatch);
   }
 
   useEffect(() => {
-    loadBlockchainData()
+    loadBlockchainData();
   })
 
   return (
