@@ -7,11 +7,13 @@ import {
   loadNetwork,
   loadAccount,
   loadTokens,
-  loadExchange
+  loadExchange,
+  subscribeToEvents
 } from '../store/interactions';
 
 import Navbar from './Navbar'
 import Markets from './Markets';
+import Balance from './Balance';
 
 
 function App() {
@@ -35,14 +37,16 @@ function App() {
     })
 
     // load token smart contracts
-    console.log(`Loading tokens for chainId: ${chainId}`);
     const DApp = config[chainId].DApp;
     const mETH = config[chainId].mETH;
     await loadTokens(provider, [DApp.address, mETH.address], dispatch);
 
     // load exchange smart contract
     const exchangeConfig = config[chainId].exchange;
-    await loadExchange(provider, exchangeConfig.address, dispatch);
+    const exchange = await loadExchange(provider, exchangeConfig.address, dispatch);
+
+    // Listen to events
+    subscribeToEvents(exchange, dispatch);
   }
 
   useEffect(() => {
@@ -59,7 +63,7 @@ function App() {
 
           <Markets />
 
-          {/* Balance */}
+          <Balance />
 
           {/* Order */}
 
