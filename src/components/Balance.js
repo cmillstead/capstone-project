@@ -69,7 +69,7 @@ const Balance = () => {
           withdrawRef.current.className = 'tab';
           setIsDeposit(true);
         }
-      }
+    }
     
 
     useEffect(() => {

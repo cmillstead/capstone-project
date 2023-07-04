@@ -17,11 +17,13 @@ export const provider = (state = {}, action) => {
                 ...state,
                 account: action.account
             };
+
         case 'ETHER_BALANCE':
             return {
                 ...state,
                 balance: action.balance
-            };     
+            };
+
         default:
             return state;
     };
@@ -31,9 +33,9 @@ const DEFAULT_TOKENS_STATE = {
     loaded: false,
     contracts: [],
     symbols: []
-  };
+};
   
-  export const tokens = (state = DEFAULT_TOKENS_STATE, action) => {
+export const tokens = (state = DEFAULT_TOKENS_STATE, action) => {
     switch (action.type) {
         case 'TOKEN_1_LOADED':
             return {
@@ -42,11 +44,13 @@ const DEFAULT_TOKENS_STATE = {
                 contracts: [action.token],
                 symbols: [action.symbol]
             };
+
         case 'TOKEN_1_BALANCE_LOADED':
             return {
                 ...state,
                 balances: [action.balance]
             };
+
         case 'TOKEN_2_LOADED':
             return {
                 ...state,
@@ -54,26 +58,34 @@ const DEFAULT_TOKENS_STATE = {
                 contracts: [...state.contracts, action.token],
                 symbols: [...state.symbols, action.symbol]
             };
+
         case 'TOKEN_2_BALANCE_LOADED':
             return {
                 ...state,
                 balances: [...state.balances, action.balance]
             };
+
         default:
             return state;
     };
-  };
+};
 
-  const DEFAULT_EXCHANGE_STATE = {
+const DEFAULT_EXCHANGE_STATE = {
     loaded: false,
     contract: {},
     transaction: {
       isSuccessful: false
     },
+    allOrders: {
+        data: [],
+        loaded: false
+    },
     events: []
-  }
+}
 
-  export const exchange = (state = DEFAULT_EXCHANGE_STATE, action) => {   
+export const exchange = (state = DEFAULT_EXCHANGE_STATE, action) => {
+    let orderIndex, data;
+    
     switch (action.type) {
         case 'EXCHANGE_LOADED':
             return {
@@ -84,16 +96,19 @@ const DEFAULT_TOKENS_STATE = {
 
         // ------------------------------------------------------------------------------
         // BALANCE CASES
+
         case 'EXCHANGE_TOKEN_1_BALANCE_LOADED':
         return {
             ...state,
             balances: [action.balance]
         };
+
         case 'EXCHANGE_TOKEN_2_BALANCE_LOADED':
         return {
             ...state,
             balances: [...state.balances, action.balance]
         };
+
         // ------------------------------------------------------------------------------
         // TRANSFER CASES (DEPOSIT & WITHDRAWS)
 
@@ -107,6 +122,7 @@ const DEFAULT_TOKENS_STATE = {
             },
             transferInProgress: true
         };
+
         case 'TRANSFER_SUCCESS':
         return {
             ...state,
@@ -118,6 +134,7 @@ const DEFAULT_TOKENS_STATE = {
             transferInProgress: false,
             events: [action.event, ...state.events]
         };
+
         case 'TRANSFER_FAIL':
         return {
             ...state,
@@ -130,11 +147,56 @@ const DEFAULT_TOKENS_STATE = {
             transferInProgress: false
         };
 
+        // ------------------------------------------------------------------------------
+        // MAKING ORDERS CASES 
+        case 'NEW_ORDER_REQUEST':
+        return {
+            ...state,
+            transaction: {
+                transactionType: 'New Order',
+                isPending: true,
+                isSuccessful: false
+            }
+        };
+
+        case 'NEW_ORDER_SUCCESS':
+        // Prevent duplicate orders
+        orderIndex = state.allOrders.data.findIndex(order => order.id === action.orderId);
+        if (orderIndex === -1) {
+            data = [...state.allOrders.data, action.order];
+        } else {
+            data = state.allOrders.data;
+        }
+
+        return {
+            ...state,
+            allOrders: {
+                ...state.allOrders,
+                data: data
+            },
+            transaction: {
+                transactionType: 'New Order',
+                isPending: true,
+                isSuccessful: false
+            },
+            events: [action.event, ...state.events]
+        };
+
+        case 'NEW_ORDER_FAIL':
+        return {
+            ...state,
+            transaction: {
+                transactionType: 'New Order',
+                isPending: false,
+                isSuccessful: false,
+                isError: true
+            }
+        };
 
         default:
             return state;
     }
- };
+};
 
 
  
